@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import React from "react";
-import { buildPageMetadata } from "../../src/lib/metadata";
+import { buildPageMetadata, resolveOpenGraphLocale } from "../../src/lib/metadata";
 import { getPageTranslations } from "../../src/lib/page-translations";
 import { usePageTranslations } from "../../src/hooks/use-page-translations";
 import { Page } from "../../src/types/pages";
@@ -80,7 +80,7 @@ describe("page metadata translations", () => {
       description: "Sign in with Google or GitHub. Secure OAuth authentication without passwords.",
       openGraph: {
         type: "website",
-        locale: "en_US",
+        locale: resolveOpenGraphLocale(),
         siteName: "Application Template",
         title: "Sign In",
         description:
@@ -95,6 +95,28 @@ describe("page metadata translations", () => {
           "Sign in with Google or GitHub. Secure OAuth authentication without passwords.",
       },
     });
+  });
+
+  it("derives the Open Graph locale from the configured app locale", async () => {
+    const previousDefaultLocale = process.env.PUBLIC_DEFAULT_LOCALE;
+
+    process.env.PUBLIC_DEFAULT_LOCALE = "ru";
+    jest.resetModules();
+
+    try {
+      const metadataModule = await import("../../src/lib/metadata");
+
+      expect(metadataModule.resolveOpenGraphLocale()).toBe("ru_RU");
+      expect(metadataModule.GlobalOpenGraph.locale).toBe("ru_RU");
+    } finally {
+      if (previousDefaultLocale === undefined) {
+        delete process.env.PUBLIC_DEFAULT_LOCALE;
+      } else {
+        process.env.PUBLIC_DEFAULT_LOCALE = previousDefaultLocale;
+      }
+
+      jest.resetModules();
+    }
   });
 
   it("resolves page translations in the client hook", () => {

@@ -4,12 +4,19 @@ import { Metadata } from "next";
 import { APP_BASE_URL } from "@lib/environment";
 import { getPageTranslations } from "@lib/page-translations";
 import { Page, PathMatchesRecord } from "@typings/pages";
+import { resolveAppLocale } from "@/src/i18n/config";
 
 export const SITE_NAME = "Application Template";
 
+export const resolveOpenGraphLocale = (value?: string | null): string => {
+  const locale = new Intl.Locale(resolveAppLocale(value)).maximize();
+
+  return locale.region ? `${locale.language}_${locale.region}` : locale.language;
+};
+
 const baseOpenGraph: OpenGraph = {
   type: "website",
-  locale: "en_US",
+  locale: resolveOpenGraphLocale(),
   siteName: SITE_NAME,
 
   url: "/",
